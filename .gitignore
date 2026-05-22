@@ -1,0 +1,15 @@
+# Maven
+*/target/
+
+# Node / Angular
+crypto-frontend/node_modules/
+crypto-frontend/dist/
+
+# IDEs
+.idea/
+*.iml
+.vscode/
+
+# OS
+.DS_Store
+Thumbs.db
