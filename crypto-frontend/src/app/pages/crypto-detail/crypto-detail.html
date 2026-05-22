@@ -1,0 +1,88 @@
+<a routerLink="/" class="btn btn-outline-secondary btn-sm mb-3">
+  Volver a la lista
+</a>
+
+@if (cryptoService.loading()) {
+  <div class="text-center py-4">
+    <div class="spinner-border text-primary" role="status"></div>
+  </div>
+}
+
+@if (cryptoService.error()) {
+  <div class="alert alert-warning">{{ cryptoService.error() }}</div>
+}
+
+@if (cryptoService.selectedItem()) {
+  <div class="card shadow-sm">
+    <div class="card-body">
+      <div class="d-flex align-items-center justify-content-between mb-4">
+        <div class="d-flex align-items-center gap-3">
+          <img [src]="cryptoService.selectedItem()!.imageUrl"
+               [alt]="cryptoService.selectedItem()!.name"
+               width="56" height="56">
+          <div>
+            <h2 class="h3 mb-1">{{ cryptoService.selectedItem()!.name }}</h2>
+            <span class="badge bg-secondary text-uppercase">
+              {{ cryptoService.selectedItem()!.symbol }}
+            </span>
+          </div>
+        </div>
+        <button class="btn btn-warning"
+                (click)="watchlistService.add(cryptoService.selectedItem()!.id)">
+          Agregar a Watchlist
+        </button>
+      </div>
+      <div class="row g-3">
+        <div class="col-sm-6 col-lg-3">
+          <div class="card bg-light h-100">
+            <div class="card-body">
+              <p class="text-muted mb-1 small">Precio actual</p>
+              <p class="fs-5 fw-bold mb-0">
+                {{ cryptoService.selectedItem()!.currentPrice
+                   | currency:"USD":"symbol":"1.2-6" }}
+              </p>
+            </div>
+          </div>
+        </div>
+        <div class="col-sm-6 col-lg-3">
+          <div class="card bg-light h-100">
+            <div class="card-body">
+              <p class="text-muted mb-1 small">Cambio 24h</p>
+              <p class="fs-5 fw-bold mb-0"
+                 [class.text-success]="cryptoService.selectedItem()!.priceChangePercentage24h >= 0"
+                 [class.text-danger]="cryptoService.selectedItem()!.priceChangePercentage24h < 0">
+                {{ cryptoService.selectedItem()!.priceChangePercentage24h
+                   | number:"1.2-2" }}%
+              </p>
+            </div>
+          </div>
+        </div>
+        <div class="col-sm-6 col-lg-3">
+          <div class="card bg-light h-100">
+            <div class="card-body">
+              <p class="text-muted mb-1 small">Cap. de mercado</p>
+              <p class="fs-5 fw-bold mb-0">
+                {{ cryptoService.selectedItem()!.marketCap
+                   | currency:"USD":"symbol":"1.0-0" }}
+              </p>
+            </div>
+          </div>
+        </div>
+        <div class="col-sm-6 col-lg-3">
+          <div class="card bg-light h-100">
+            <div class="card-body">
+              <p class="text-muted mb-1 small">Volumen 24h</p>
+              <p class="fs-5 fw-bold mb-0">
+                {{ cryptoService.selectedItem()!.totalVolume
+                   | currency:"USD":"symbol":"1.0-0" }}
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+      @if (watchlistService.message()) {
+        <div class="alert alert-info mt-3">{{ watchlistService.message() }}</div>
+      }
+    </div>
+  </div>
+}

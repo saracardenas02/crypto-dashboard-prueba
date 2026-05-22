@@ -1,0 +1,78 @@
+<div class="d-flex justify-content-between align-items-center mb-3">
+  <h2 class="h4 mb-0">Top Criptomonedas</h2>
+  <button class="btn btn-outline-primary btn-sm"
+          (click)="cryptoService.loadAll()">
+    Actualizar
+  </button>
+</div>
+
+@if (cryptoService.loading()) {
+  <div class="text-center py-5">
+    <div class="spinner-border text-primary" role="status"></div>
+    <p class="mt-2 text-muted">Cargando datos...</p>
+  </div>
+}
+
+@if (cryptoService.error()) {
+  <div class="alert alert-danger">
+    {{ cryptoService.error() }}
+  </div>
+}
+
+@if (!cryptoService.loading() && cryptoService.items().length > 0) {
+  <div class="card shadow-sm">
+    <div class="table-responsive">
+      <table class="table table-hover align-middle mb-0">
+        <thead class="table-dark">
+          <tr>
+            <th>#</th>
+            <th>Nombre</th>
+            <th>Precio USD</th>
+            <th>Cambio 24h</th>
+            <th>Cap. Mercado</th>
+            <th>Acciones</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (item of cryptoService.items(); track item.id; let i = $index) {
+            <tr>
+              <td class="text-muted">{{ i + 1 }}</td>
+              <td>
+                <img [src]="item.imageUrl" [alt]="item.name"
+                     width="28" height="28" class="me-2 rounded-circle">
+                <strong>{{ item.name }}</strong>
+                <span class="text-muted ms-1 text-uppercase small">
+                  {{ item.symbol }}
+                </span>
+              </td>
+              <td>
+                {{ item.currentPrice | currency:"USD":"symbol":"1.2-6" }}
+              </td>
+              <td [ngClass]="item.priceChangePercentage24h >= 0
+                             ? 'text-success fw-bold'
+                             : 'text-danger fw-bold'">
+                {{ item.priceChangePercentage24h | number:"1.2-2" }}%
+              </td>
+              <td>
+                {{ item.marketCap | currency:"USD":"symbol":"1.0-0" }}
+              </td>
+              <td class="d-flex gap-2">
+                <a [routerLink]="['/item', item.id]"
+                   class="btn btn-sm btn-outline-secondary">
+                  Detalle
+                </a>
+                <button class="btn btn-sm btn-outline-warning"
+                        (click)="watchlistService.add(item.id)">
+                  + Watchlist
+                </button>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  </div>
+  @if (watchlistService.message()) {
+    <div class="alert alert-info mt-3">{{ watchlistService.message() }}</div>
+  }
+}
