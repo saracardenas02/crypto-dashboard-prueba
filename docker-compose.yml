@@ -1,0 +1,69 @@
+version: "3.9"
+
+services:
+
+  # Redis: cache para el query-service
+  redis:
+    image: redis:7-alpine
+    container_name: crypto-redis
+    # healthcheck: verifica que Redis este listo antes de arrancar los servicios
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+
+  # Servicio 1: consume CoinGecko
+  crypto-consumer:
+    build: ./crypto-consumer-service
+    container_name: crypto-consumer
+    ports:
+      - "8081:8081"
+    environment:
+      - SERVER_PORT=8081
+    # depends_on: espera a que Redis este saludable antes de arrancar
+    depends_on:
+      redis:
+        condition: service_healthy
+
+  # Microservicio A: API publica con cache Redis
+  crypto-query:
+    build: ./crypto-query-service
+    container_name: crypto-query
+    ports:
+      - "8080:8080"
+    environment:
+      - SERVER_PORT=8080
+      # En Docker, los servicios se comunican por nombre de contenedor,
+      # no por "localhost". Sobreescribimos las URLs del properties.
+      - CONSUMER_SERVICE_URL=http://crypto-consumer:8081/internal/crypto
+      - SPRING_DATA_REDIS_HOST=redis
+      - SPRING_DATA_REDIS_PORT=6379
+    depends_on:
+      redis:
+        condition: service_healthy
+      crypto-consumer:
+        condition: service_started
+
+  # Microservicio B: gestiona la watchlist
+  crypto-management:
+    build: ./crypto-management-service
+    container_name: crypto-management
+    ports:
+      - "8082:8082"
+    environment:
+      - SERVER_PORT=8082
+      - CONSUMER_SERVICE_URL=http://crypto-consumer:8081/internal/crypto
+    depends_on:
+      crypto-consumer:
+        condition: service_started
+
+  # Frontend Angular servido con Nginx
+  crypto-frontend:
+    build: ./crypto-frontend
+    container_name: crypto-frontend
+    ports:
+      - "4200:80"
+    depends_on:
+      - crypto-query
+      - crypto-management
